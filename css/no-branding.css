@@ -1,0 +1,40 @@
+/* Custom CSS to remove all Jitsi branding */
+
+/* Hide all watermark elements */
+.watermark,
+.leftwatermark,
+.rightwatermark,
+.poweredby,
+.welcome-watermark,
+.header-watermark-container,
+.welcome .welcome-watermark,
+.welcome .header .header-watermark-container {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Hide logo elements */
+.logo,
+.header .logo,
+.deep-linking-desktop .header .logo,
+.deep-linking-mobile .header .logo {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Hide any branding in policy pages */
+.policy__logo {
+  display: none !important;
+}
+
+/* Hide deep linking logos */
+.deep-linking-image,
+[style*='deep-linking-image.png'],
+[style*='logo-deep-linking'],
+[style*='jitsilogo'] {
+  display: none !important;
+  background-image: none !important;
+}
