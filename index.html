@@ -1,203 +1,274 @@
-<html itemscope itemtype="http://schema.org/Product" prefix="og: http://ogp.me/ns#" xmlns="http://www.w3.org/1999/html">
+<html
+  itemscope
+  itemtype="http://schema.org/Product"
+  prefix="og: http://ogp.me/ns#"
+  xmlns="http://www.w3.org/1999/html"
+>
   <head>
     <!--#include virtual="head.html" -->
-    <meta charset="utf-8">
-    <meta http-equiv="content-type" content="text/html;charset=utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <meta name="theme-color" content="#2A3A4B">
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="content-type"
+      content="text/html;charset=utf-8"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <meta
+      name="theme-color"
+      content="#2A3A4B"
+    />
     <!--#include virtual="base.html" -->
 
-    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-    <link rel="stylesheet" href="css/all.css?v=8877">
-    <link rel="stylesheet" href="css/no-branding.css">
+    <link
+      rel="apple-touch-icon"
+      href="images/apple-touch-icon.png"
+    />
+    <link
+      rel="stylesheet"
+      href="css/all.css?v=8877"
+    />
+    <link
+      rel="stylesheet"
+      href="css/no-branding.css"
+    />
     <!--#include virtual="fonts.html"-->
-    <link rel="manifest" id="manifest-placeholder">
+    <link
+      rel="manifest"
+      id="manifest-placeholder"
+    />
 
     <script>
-        function contextRoot(pathname) {
-            const contextRootEndIndex = pathname.lastIndexOf('/');
+      function contextRoot(pathname) {
+        const contextRootEndIndex = pathname.lastIndexOf('/');
 
-            return (
-                contextRootEndIndex === -1
-                ? '/'
-                : pathname.substring(0, contextRootEndIndex + 1)
-            );
-        }
-        window.EXCALIDRAW_ASSET_PATH = 'libs/';
-        // Dynamically generate the manifest location URL. It must be served from the document origin, and we may have
-        // the base pointing to the CDN. This way we can generate a full URL which will bypass the base.
-        document.querySelector('#manifest-placeholder').setAttribute('href', window.location.origin + contextRoot(window.location.pathname) + 'manifest.json');
+        return contextRootEndIndex === -1
+          ? '/'
+          : pathname.substring(0, contextRootEndIndex + 1);
+      }
+      window.EXCALIDRAW_ASSET_PATH = 'libs/';
+      // Dynamically generate the manifest location URL. It must be served from the document origin, and we may have
+      // the base pointing to the CDN. This way we can generate a full URL which will bypass the base.
+      document
+        .querySelector('#manifest-placeholder')
+        .setAttribute(
+          'href',
+          window.location.origin +
+            contextRoot(window.location.pathname) +
+            'manifest.json'
+        );
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!JitsiMeetJS.app) {
-                return;
-            }
-
-            JitsiMeetJS.app.renderEntryPoint({
-                Component: JitsiMeetJS.app.entryPoints.APP
-            })
-
-            const isEmbedded = () => {
-                try {
-                    return window.self !== window.top;
-                } catch (e) {
-                    return true;
-                }
-            };
-
-            const isElectron = navigator.userAgent.includes('Electron');
-            const shouldRegisterWorker = !isElectron && !isEmbedded() && 'serviceWorker' in navigator;
-
-            if (shouldRegisterWorker) {
-                navigator.serviceWorker
-                    .register(window.location.origin + contextRoot(window.location.pathname) + 'pwa-worker.js')
-                    .then(reg => {
-                        console.log('Service worker registered.', reg);
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    });
-            }
-        });
-    </script>
-    <script>
-        // IE11 and earlier can be identified via their user agent and be
-        // redirected to a page that is known to have no newer js syntax.
-        if (window.navigator.userAgent.match(/(MSIE|Trident)/)) {
-            var roomName = encodeURIComponent(window.location.pathname);
-            window.location.pathname = 'static/recommendedBrowsers.html';
+      document.addEventListener('DOMContentLoaded', () => {
+        if (!JitsiMeetJS.app) {
+          return;
         }
 
-        window.indexLoadedTime = window.performance.now();
-        console.log("(TIME) index.html loaded:\t", indexLoadedTime);
-        window.addEventListener('load', function() {
-            window.loadedEventTime = window.performance.now();
-            console.log("(TIME) window loaded event:\t", loadedEventTime);
-        });
+        // Check if we're on a room URL (e.g., /roomname) or just the welcome page (/)
+        const pathname = window.location.pathname;
+        const isWelcomePage =
+          pathname === '/' ||
+          pathname === contextRoot(pathname).replace(/\/$/, '');
 
-        // XXX the code below listeners for errors and displays an error message
-        // in the document body when any of the required files fails to load.
-        // The intention is to prevent from displaying broken page.
-        var criticalFiles = [
-            "config.js",
-            "utils.js",
-            "do_external_connect.js",
-            "interface_config.js",
-            "lib-jitsi-meet.min.js",
-            "app.bundle.min.js",
-            "all.css?v=8877"
-        ];
-        var loadErrHandler = function(e) {
-            var target = e.target;
-            // Error on <script> and <link>(CSS)
-            // <script> will have .src and <link> .href
-            var fileRef = (target.src ? target.src : target.href);
-            if (("SCRIPT" === target.tagName || "LINK" === target.tagName)
-                && criticalFiles.some(
-                    function(file) { return fileRef.indexOf(file) !== -1 })) {
-                window.onload = function() {
-                    // The whole complex part below implements page reloads with
-                    // "exponential backoff". The retry attempt is passes as
-                    // "rCounter" query parameter
-                    var href = window.location.href;
+        // Only show thank you screen on welcome page, allow normal meeting interface for rooms
+        if (!isWelcomePage) {
+          // In a meeting room - render normal Jitsi interface
+          document.body.classList.remove('welcome-page');
+          document.getElementById('react').style.display = 'block';
+          document.querySelector('.container').style.display = 'none';
 
-                    var retryMatch = href.match(/.+(\?|&)rCounter=(\d+)/);
-                    var retryCountStr = retryMatch ? retryMatch[2] : "0";
-                    var retryCount = Number.parseInt(retryCountStr);
+          JitsiMeetJS.app.renderEntryPoint({
+            Component: JitsiMeetJS.app.entryPoints.APP,
+          });
+        } else {
+          // On welcome page - show thank you screen
+          document.body.classList.add('welcome-page');
+          document.getElementById('react').style.display = 'none';
+        }
 
-                    if (retryMatch == null) {
-                        var separator = href.indexOf("?") === -1 ? "?" : "&";
-                        var hashIdx = href.indexOf("#");
-
-                        if (hashIdx === -1) {
-                            href += separator + "rCounter=1";
-                        } else {
-                            var hashPart = href.substr(hashIdx);
-
-                            href = href.substr(0, hashIdx)
-                                + separator + "rCounter=1" + hashPart;
-                        }
-                    } else {
-                        var separator = retryMatch[1];
-
-                        href = href.replace(
-                            /(\?|&)rCounter=(\d+)/,
-                            separator + "rCounter=" + (retryCount + 1));
-                    }
-
-                    var delay = Math.pow(2, retryCount) * 2000;
-                    if (isNaN(delay) || delay < 2000 || delay > 60000)
-                        delay = 10000;
-
-                    var showMoreText = "show more";
-                    var showLessText = "show less";
-
-                    document.body.innerHTML
-                        = "<div style='"
-                        + "position: absolute;top: 50%;left: 50%;"
-                        + "text-align: center;"
-                        + "font-size: medium;"
-                        + "font-weight: 400;"
-                        + "transform: translate(-50%, -50%)'>"
-                        + "Uh oh! We couldn't fully download everything we needed :("
-                        + "<br/> "
-                        + "We will try again shortly. In the mean time, check for problems with your Internet connection!"
-                        + "<br/><br/> "
-                        + "<div id='moreInfo' style='"
-                        + "display: none;'>" + "Missing " + fileRef
-                        + "<br/><br/></div>"
-                        + "<a id='showMore' style='"
-                        + "text-decoration: underline;"
-                        + "font-size:small;"
-                        + "cursor: pointer'>" + showMoreText + "</a>"
-                        + "&nbsp;&nbsp;&nbsp;"
-                        + "<a id ='reloadLink' style='"
-                        + "text-decoration: underline;"
-                        + "font-size:small;"
-                        + "'>reload now</a>"
-                        + "</div>";
-
-                    var reloadLink = document.getElementById('reloadLink');
-                    reloadLink.setAttribute('href', href);
-
-                    var showMoreElem = document.getElementById("showMore");
-                    showMoreElem.addEventListener('click', function () {
-                            var moreInfoElem
-                                    = document.getElementById("moreInfo");
-
-                            if (showMoreElem.innerHTML === showMoreText) {
-                                moreInfoElem.setAttribute(
-                                    "style",
-                                    "display: block;"
-                                    + "color:#FF991F;"
-                                    + "font-size:small;"
-                                    + "user-select:text;");
-                                showMoreElem.innerHTML = showLessText;
-                            }
-                            else {
-                                moreInfoElem.setAttribute(
-                                    "style", "display: none;");
-                                showMoreElem.innerHTML = showMoreText;
-                            }
-                        });
-
-                    window.setTimeout(
-                        function () { window.location.replace(href); }, delay);
-
-                    // Call extra handler if defined.
-                    if (typeof postLoadErrorHandler === "function") {
-                        postLoadErrorHandler(fileRef);
-                    }
-                };
-                window.removeEventListener(
-                    'error', loadErrHandler, true /* capture phase */);
-            }
+        const isEmbedded = () => {
+          try {
+            return window.self !== window.top;
+          } catch (e) {
+            return true;
+          }
         };
-        window.addEventListener(
-            'error', loadErrHandler, true /* capture phase type of listener */);
+
+        const isElectron = navigator.userAgent.includes('Electron');
+        const shouldRegisterWorker =
+          !isElectron && !isEmbedded() && 'serviceWorker' in navigator;
+
+        if (shouldRegisterWorker) {
+          navigator.serviceWorker
+            .register(
+              window.location.origin +
+                contextRoot(window.location.pathname) +
+                'pwa-worker.js'
+            )
+            .then((reg) => {
+              console.log('Service worker registered.', reg);
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
+      });
     </script>
-    <script><!--#include virtual="/config.js" --></script><!-- adapt to your needs, i.e. set hosts and bosh path -->
-    <script><!--#include virtual="/interface_config.js" --></script>
+    <script>
+      // IE11 and earlier can be identified via their user agent and be
+      // redirected to a page that is known to have no newer js syntax.
+      if (window.navigator.userAgent.match(/(MSIE|Trident)/)) {
+        var roomName = encodeURIComponent(window.location.pathname);
+        window.location.pathname = 'static/recommendedBrowsers.html';
+      }
+
+      window.indexLoadedTime = window.performance.now();
+      console.log('(TIME) index.html loaded:\t', indexLoadedTime);
+      window.addEventListener('load', function () {
+        window.loadedEventTime = window.performance.now();
+        console.log('(TIME) window loaded event:\t', loadedEventTime);
+      });
+
+      // XXX the code below listeners for errors and displays an error message
+      // in the document body when any of the required files fails to load.
+      // The intention is to prevent from displaying broken page.
+      var criticalFiles = [
+        'config.js',
+        'utils.js',
+        'do_external_connect.js',
+        'interface_config.js',
+        'lib-jitsi-meet.min.js',
+        'app.bundle.min.js',
+        'all.css?v=8877',
+      ];
+      var loadErrHandler = function (e) {
+        var target = e.target;
+        // Error on <script> and <link>(CSS)
+        // <script> will have .src and <link> .href
+        var fileRef = target.src ? target.src : target.href;
+        if (
+          ('SCRIPT' === target.tagName || 'LINK' === target.tagName) &&
+          criticalFiles.some(function (file) {
+            return fileRef.indexOf(file) !== -1;
+          })
+        ) {
+          window.onload = function () {
+            // The whole complex part below implements page reloads with
+            // "exponential backoff". The retry attempt is passes as
+            // "rCounter" query parameter
+            var href = window.location.href;
+
+            var retryMatch = href.match(/.+(\?|&)rCounter=(\d+)/);
+            var retryCountStr = retryMatch ? retryMatch[2] : '0';
+            var retryCount = Number.parseInt(retryCountStr);
+
+            if (retryMatch == null) {
+              var separator = href.indexOf('?') === -1 ? '?' : '&';
+              var hashIdx = href.indexOf('#');
+
+              if (hashIdx === -1) {
+                href += separator + 'rCounter=1';
+              } else {
+                var hashPart = href.substr(hashIdx);
+
+                href =
+                  href.substr(0, hashIdx) + separator + 'rCounter=1' + hashPart;
+              }
+            } else {
+              var separator = retryMatch[1];
+
+              href = href.replace(
+                /(\?|&)rCounter=(\d+)/,
+                separator + 'rCounter=' + (retryCount + 1)
+              );
+            }
+
+            var delay = Math.pow(2, retryCount) * 2000;
+            if (isNaN(delay) || delay < 2000 || delay > 60000) delay = 10000;
+
+            var showMoreText = 'show more';
+            var showLessText = 'show less';
+
+            document.body.innerHTML =
+              "<div style='" +
+              'position: absolute;top: 50%;left: 50%;' +
+              'text-align: center;' +
+              'font-size: medium;' +
+              'font-weight: 400;' +
+              "transform: translate(-50%, -50%)'>" +
+              "Uh oh! We couldn't fully download everything we needed :(" +
+              '<br/> ' +
+              'We will try again shortly. In the mean time, check for problems with your Internet connection!' +
+              '<br/><br/> ' +
+              "<div id='moreInfo' style='" +
+              "display: none;'>" +
+              'Missing ' +
+              fileRef +
+              '<br/><br/></div>' +
+              "<a id='showMore' style='" +
+              'text-decoration: underline;' +
+              'font-size:small;' +
+              "cursor: pointer'>" +
+              showMoreText +
+              '</a>' +
+              '&nbsp;&nbsp;&nbsp;' +
+              "<a id ='reloadLink' style='" +
+              'text-decoration: underline;' +
+              'font-size:small;' +
+              "'>reload now</a>" +
+              '</div>';
+
+            var reloadLink = document.getElementById('reloadLink');
+            reloadLink.setAttribute('href', href);
+
+            var showMoreElem = document.getElementById('showMore');
+            showMoreElem.addEventListener('click', function () {
+              var moreInfoElem = document.getElementById('moreInfo');
+
+              if (showMoreElem.innerHTML === showMoreText) {
+                moreInfoElem.setAttribute(
+                  'style',
+                  'display: block;' +
+                    'color:#FF991F;' +
+                    'font-size:small;' +
+                    'user-select:text;'
+                );
+                showMoreElem.innerHTML = showLessText;
+              } else {
+                moreInfoElem.setAttribute('style', 'display: none;');
+                showMoreElem.innerHTML = showMoreText;
+              }
+            });
+
+            window.setTimeout(function () {
+              window.location.replace(href);
+            }, delay);
+
+            // Call extra handler if defined.
+            if (typeof postLoadErrorHandler === 'function') {
+              postLoadErrorHandler(fileRef);
+            }
+          };
+          window.removeEventListener(
+            'error',
+            loadErrHandler,
+            true /* capture phase */
+          );
+        }
+      };
+      window.addEventListener(
+        'error',
+        loadErrHandler,
+        true /* capture phase type of listener */
+      );
+    </script>
+    <script>
+      <!--#include virtual="/config.js" -->
+    </script>
+    <!-- adapt to your needs, i.e. set hosts and bosh path -->
+    <script>
+      <!--#include virtual="/interface_config.js" -->
+    </script>
     <script src="libs/lib-jitsi-meet.min.js?v=8877"></script>
     <script src="libs/app.bundle.min.js?v=8877"></script>
     <!--#include virtual="title.html" -->
@@ -207,10 +278,175 @@
     <!--#include virtual="static/settingsToolbarAdditionalContent.html" -->
   </head>
   <body>
-    <noscript aria-hidden="true">
-        <div>JavaScript is disabled. </br>For this site to work you have to enable JavaScript.</div>
-    </noscript>
-    <!--#include virtual="body.html" -->
-    <div id="react" role="main"></div>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+          'Helvetica', 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      body.welcome-page {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow: hidden;
+      }
+
+      .container {
+        text-align: center;
+        animation: fadeInUp 0.8s ease-out;
+      }
+
+      .thank-you-card {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 80px 60px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 32px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: scaleIn 0.6s ease-out 0.3s both;
+      }
+
+      .icon svg {
+        width: 40px;
+        height: 40px;
+        stroke: white;
+        stroke-width: 3;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      h1 {
+        font-size: 48px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+        letter-spacing: -0.5px;
+      }
+
+      .subtitle {
+        font-size: 20px;
+        color: #666;
+        margin-bottom: 48px;
+        line-height: 1.6;
+        font-weight: 400;
+      }
+
+      .brand {
+        margin-top: 48px;
+        padding-top: 32px;
+        border-top: 1px solid #e5e5e5;
+      }
+
+      .brand-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #999;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      .brand-name {
+        font-size: 28px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.5px;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes scaleIn {
+        from {
+          transform: scale(0);
+        }
+        to {
+          transform: scale(1);
+        }
+      }
+
+      @media (max-width: 640px) {
+        .thank-you-card {
+          padding: 60px 40px;
+        }
+
+        h1 {
+          font-size: 36px;
+        }
+
+        .subtitle {
+          font-size: 18px;
+        }
+
+        .brand-name {
+          font-size: 24px;
+        }
+      }
+    </style>
+
+    <!-- Thank You Screen (shown on welcome page only) -->
+    <div class="container">
+      <div class="thank-you-card">
+        <div class="icon">
+          <svg viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+
+        <h1>Thank You</h1>
+
+        <p class="subtitle">
+          We're glad to have you here.<br />
+          Your presence makes a difference.
+        </p>
+
+        <div class="brand">
+          <div class="brand-label">Crafted by</div>
+          <div class="brand-name">SonetCraft</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jitsi Meeting Interface (shown when joining a room) -->
+    <div
+      id="react"
+      role="main"
+      style="display: none"
+    ></div>
   </body>
 </html>
